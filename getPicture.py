@@ -11,7 +11,7 @@ from openai import images
 
 # 获取 Unsplash 图片的函数
 def fetch_images(query):
-    unsplash_access_key = "EHskG9CrYx-PQg6F4fWResn2qgSEDKLCh-npEo3mlTY"  # 替换为你的 Unsplash Access Key
+    unsplash_access_key = "YOUR_UNSPLASH_API"  # 替换为你的 Unsplash Access Key
     url = "https://api.unsplash.com/search/photos"
     params = {
         "query": query,

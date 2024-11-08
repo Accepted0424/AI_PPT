@@ -62,7 +62,7 @@ def generate():
 
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
+        api_key="YOUR_ALI_API",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
