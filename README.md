@@ -1,5 +1,9 @@
 ## AI-PPT
 
+### API
+- [通义千问](https://www.aliyun.com/product/bailian)
+- [UNSPLASH](https://unsplash.com/developers)
+
 ### 现阶段功能
 
 - 调用阿里通义千问API获取PPT文本内容
