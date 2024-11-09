@@ -6,8 +6,6 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 
-from openai import images
-
 
 # 获取 Unsplash 图片的函数
 def fetch_images(query):
@@ -35,6 +33,7 @@ def get_unique_filename(filepath):
 
     return new_filepath
 
+
 def donwload_image_default(images, save_dir):
     random_image = random.choice(images)
 
@@ -52,6 +51,7 @@ def donwload_image_default(images, save_dir):
     print(f"图片已保存到: {save_path}")
     return save_path
 
+
 # 下载并保存图片
 def download_image(image_url):
     # 选择保存路径
@@ -66,8 +66,9 @@ def download_image(image_url):
         except Exception as e:
             messagebox.showerror("错误", f"下载图片失败: {e}")
 
+
 # 显示图片的函数
-def display_images(images,image_frame):
+def display_images(images, image_frame):
     for widget in image_frame.winfo_children():
         widget.destroy()  # 清空当前显示的图片
 
@@ -83,14 +84,16 @@ def display_images(images,image_frame):
         image_label.image = tk_img  # 保存引用
         image_label.pack(side=tk.LEFT, padx=5, pady=5)
 
+
         # 下载按钮
         download_button = tk.Button(image_frame, text="下载", command=lambda url=image_url: download_image(url))
         download_button.pack(side=tk.LEFT, padx=5)
 
-def getPic(query,mode):
+
+def getPic(query, mode):
     images = fetch_images(query)
     if mode == "default":
-        img_path = donwload_image_default(images,"Pictures")
+        img_path = donwload_image_default(images, "Pictures")
         return img_path
     elif mode == "user_select":
         # 创建主窗口
@@ -98,11 +101,12 @@ def getPic(query,mode):
         root.title("图片选择器")
         root.geometry("600x400")
 
+
         # 图片显示区域
         image_frame = tk.Frame(root)
         image_frame.pack(pady=10)
 
         # 直接搜索并显示图片
-        display_images(images,image_frame)
+        display_images(images, image_frame)
 
         root.mainloop()
