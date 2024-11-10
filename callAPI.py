@@ -1,14 +1,14 @@
 from openai import OpenAI
 import json
-from readBook import *
+from readBook import read_file
 import os
 
 
 # 调用API生成目标文字
-def call_openai(theme, pages, book_path, prompt_file_path, output_file_path):
+def call_openai(theme, pages, book_path, prompt_file_path):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key="YOUR_TONGYI_API_KEY",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
@@ -77,4 +77,25 @@ def call_openai(theme, pages, book_path, prompt_file_path, output_file_path):
     str_content = content['choices'][0]['message']['content']
     str_content = str_content.replace("\\", "\\\\")
     ppt_content = json.loads(str_content)
+
+    # 将返回内容保存到文件夹“api_return_src”，用于缓存和测试
+    folder_path = "api_return_src"
+    completion_file_path = os.path.join(folder_path, "completion.json")
+    os.makedirs(folder_path, exist_ok=True)
+    with open(completion_file_path, 'w', encoding='utf-8') as completion_file:
+        completion_file.write(completion_json)
+        print("api返回文件(格式化)已保存")
+    content_file_path = os.path.join(folder_path, "content_format.json")
+    with open(content_file_path, 'w', encoding='utf-8') as content_file:
+        content_file.write(str_content)
+        print("返回文件中的content部分已保存")
+
     return ppt_content
+
+# 直接运行该文件进行测试
+if __name__ == '__main__':
+    theme_test = input("请输入ppt的主题：")
+    page_test = input("请输入ppt的页数：")
+    book_path_test = "book.pdf"
+    prompt_file_path_test = "prompt.txt"
+    call_openai(theme_test, page_test, book_path_test, prompt_file_path_test)
