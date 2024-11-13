@@ -1,14 +1,14 @@
 from openai import OpenAI
-import json
+from json2md import *
 from readBook import read_file
 import os
 
 
 # 调用API生成目标文字
-def call_openai(theme, pages, book_path, prompt_file_path):
+def call_openai(theme, pages, book_path, prompt_file_path, output_file_path):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key="YOUR_TONGYI_API_KEY",
+        api_key="sk-e1b95b4233e14a87bbad7c634812b5a7",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
@@ -20,11 +20,11 @@ def call_openai(theme, pages, book_path, prompt_file_path):
                 "content": [
                     {
                         "title": "第一段的主题",
-                        "description": "第一段的细节内容",
+                        "description": "第一段的细节内容，120-170字",
                     },
                     {
                         "title": "第二段的主题",
-                        "description": "第二段的细节内容",
+                        "description": "第二段的细节内容，120-170字",
                     },
                 ],
                 "picture": "用一个词语总结本页的内容",
@@ -34,15 +34,15 @@ def call_openai(theme, pages, book_path, prompt_file_path):
                 "content": [
                     {
                         "title": "第一段的主题",
-                        "description": "第一段的细节内容",
+                        "description": "第一段的细节内容，120-170字",
                     },
                     {
                         "title": "第二段的主题",
-                        "description": "第二段的细节内容",
+                        "description": "第二段的细节内容，120-170字",
                     },
                     {
                         "title": "第三段的主题",
-                        "description": "第三段的细节内容",
+                        "description": "第三段的细节内容，120-170字",
                     },
                 ],
                 "picture": "用一个词语总结本页的内容",
@@ -76,8 +76,13 @@ def call_openai(theme, pages, book_path, prompt_file_path):
     content = json.loads(completion_json)
     str_content = content['choices'][0]['message']['content']
     str_content = str_content.replace("\\", "\\\\")
-    ppt_content = json.loads(str_content)
+    dic_content = json.loads(str_content)
+    md_content = json_to_markdown(dic_content)
 
+    return md_content
+
+
+'''
     # 将返回内容保存到文件夹“api_return_src”，用于缓存和测试
     folder_path = "api_return_src"
     completion_file_path = os.path.join(folder_path, "completion.json")
@@ -89,9 +94,7 @@ def call_openai(theme, pages, book_path, prompt_file_path):
     with open(content_file_path, 'w', encoding='utf-8') as content_file:
         content_file.write(str_content)
         print("返回文件中的content部分已保存")
-
-    return ppt_content
-
+'''
 
 # 直接运行该文件进行测试
 if __name__ == '__main__':

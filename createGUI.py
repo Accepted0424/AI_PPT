@@ -41,11 +41,14 @@ def select_output_file():
 def save_ppt():
     get_theme_and_pages()
     if prompt_file_path and book_path and output_file_path and theme and pages:
-        ppt_content = call_openai(theme, pages, book_path, prompt_file_path, output_file_path)
-        ppt = generate(ppt_content)
-        ppt.save(output_file_path + '/' + theme + ".pptx")
-        output_file_label.config(text=f"PPT导出到: {output_file_path}")
-        messagebox.showinfo("导出成功", f"PPT已保存到: {output_file_path}")
+        md_content = call_openai(theme, pages, book_path, prompt_file_path, output_file_path)
+        with open('md2pptx/input.md', 'w', encoding='utf-8') as file:
+            file.write(md_content)
+        # 构建命令
+        input_path = os.path.abspath('md2pptx\\input.md')
+        command = ['python', './md2pptx/md2pptx', input_path, output_file_path, theme]
+        # 使用 subprocess.run 执行命令
+        subprocess.run(command)
         # 关闭GUI窗口
         root.quit()
     else:

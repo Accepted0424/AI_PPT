@@ -3,9 +3,10 @@ from pptx.util import Pt, Inches
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from getPicture import *
-
+import subprocess
 
 # 通过大模型生成的文本制作PPT
+'''
 def generate(ppt_content):
     ppt = Presentation()
     # PPT首页
@@ -73,3 +74,12 @@ def generate(ppt_content):
             para.space_after = Pt(10)
 
     return ppt
+'''
+
+if __name__ == "__main__":
+    # 构建命令
+    input_path = os.path.abspath('md2pptx\\input.md')
+    command = ['python', './md2pptx/md2pptx', input_path, 'A:/IDE/Pycharm/AI_PPT', '链接']
+
+    # 使用 subprocess.run 执行命令
+    subprocess.run(command)

@@ -49,7 +49,7 @@ def read_file(book_path):
 
     file_extension = os.path.splitext(book_path)[1].lower()
 
-    if file_extension == '.txt':
+    if file_extension == '.txt' or file_extension == '.md':
         return read_txt(book_path)
     elif file_extension == '.pdf':
         return read_pdf(book_path)

@@ -4,12 +4,17 @@ import os
 
 def json_to_markdown(json_data):
     # config information
-    md_output = 'template: Martin Template.pptx\ncardlayout: horizontal\nbaseTextSize: 20\nCardColour: BACKGROUND 2\nCardTitlePosition: inside\ncardshadow: yes\ncardshape: rounded'
+    md_output = ('template: Martin Template.pptx\n'
+                 + 'cardlayout: horizontal\n'
+                 + 'baseTextSize: 20\n'
+                 + 'CardColour: BACKGROUND 2\n'
+                 + 'CardTitlePosition: inside\n'
+                 + 'cardshadow: yes\n'
+                 + 'cardshape: rounded')
 
     # cover
     md_output += '\n\n# ' + json_data['title']  # Markdown的标题
     md_output += '\nPowered by Tongyi.ali'
-
     # 遍历每一页
     for i, page in enumerate(json_data['pages']):
         md_output += '\n\n### ' + page['title']
