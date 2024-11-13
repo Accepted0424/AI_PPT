@@ -8,7 +8,7 @@ import os
 def call_openai(theme, pages, book_path, prompt_file_path, output_file_path):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key="sk-e1b95b4233e14a87bbad7c634812b5a7",
+        api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
