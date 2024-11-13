@@ -54,7 +54,7 @@ def generate(ppt_content):
 
         img_path = getPic("network", "default")
         with Image.open(img_path, "r") as img:
-           img_width, img_height = img.size
+            img_width, img_height = img.size
 
         img_placeholder = slide.placeholders[2]
         left = img_placeholder.left

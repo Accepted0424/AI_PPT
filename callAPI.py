@@ -13,39 +13,39 @@ def call_openai(theme, pages, book_path, prompt_file_path):
     )
 
     output_format = json.dumps({
-        "title": "example title",
+        "title": "PPT的主题",
         "pages": [
             {
-                "title": "title for page 1",
+                "title": "第一页的主题",
                 "content": [
                     {
-                        "title": "title for paragraph 1",
-                        "description": "detail for paragraph 1",
+                        "title": "第一段的主题",
+                        "description": "第一段的细节内容",
                     },
                     {
-                        "title": "title for paragraph 2",
-                        "description": "detail for paragraph 2",
+                        "title": "第二段的主题",
+                        "description": "第二段的细节内容",
                     },
                 ],
-                "picture": "summarize the content of this page in a few words",
+                "picture": "用一个词语总结本页的内容",
             },
             {
-                "title": "title for page 2",
+                "title": "第二页的主题",
                 "content": [
                     {
-                        "title": "title for paragraph 1",
-                        "description": "detail for paragraph 1",
+                        "title": "第一段的主题",
+                        "description": "第一段的细节内容",
                     },
                     {
-                        "title": "title for paragraph 2",
-                        "description": "detail for paragraph 2",
+                        "title": "第二段的主题",
+                        "description": "第二段的细节内容",
                     },
                     {
-                        "title": "title for paragraph 3",
-                        "description": "detail for paragraph 3",
+                        "title": "第三段的主题",
+                        "description": "第三段的细节内容",
                     },
                 ],
-                "picture": "summarize the content of this page in a few words",
+                "picture": "用一个词语总结本页的内容",
             },
         ],
     }, ensure_ascii=True)
@@ -91,6 +91,7 @@ def call_openai(theme, pages, book_path, prompt_file_path):
         print("返回文件中的content部分已保存")
 
     return ppt_content
+
 
 # 直接运行该文件进行测试
 if __name__ == '__main__':

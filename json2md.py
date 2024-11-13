@@ -14,10 +14,11 @@ def json_to_markdown(json_data):
     for i, page in enumerate(json_data['pages']):
         md_output += '\n\n### ' + page['title']
         # 遍历每一页中的栏
-        for j,column in enumerate(page['content']):
+        for j, column in enumerate(page['content']):
             md_output += '\n\n#### ' + column['title']
             md_output += '\n* ' + column['description']
     return md_output
+
 
 if __name__ == '__main__':
     # 读取JSON文件
@@ -36,4 +37,3 @@ if __name__ == '__main__':
         md_file.write(markdown_content)
 
     print("JSON转换为Markdown完成！")
-

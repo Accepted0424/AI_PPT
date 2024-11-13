@@ -17,10 +17,11 @@ def generatePPT_with_sample():
             title.font.name = "微软雅黑"
             title.font.bold = True
             title.font.size = Pt(66)
-            title.font.color.rgb = RGBColor(0,91,171)
+            title.font.color.rgb = RGBColor(0, 91, 171)
             print("已成功修改标题")
 
     ppt.save('modified_ppt_sample_buaa.pptx')
+
 
 if __name__ == '__main__':
     generatePPT_with_sample()

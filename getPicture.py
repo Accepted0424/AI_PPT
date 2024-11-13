@@ -84,7 +84,6 @@ def display_images(images, image_frame):
         image_label.image = tk_img  # 保存引用
         image_label.pack(side=tk.LEFT, padx=5, pady=5)
 
-
         # 下载按钮
         download_button = tk.Button(image_frame, text="下载", command=lambda url=image_url: download_image(url))
         download_button.pack(side=tk.LEFT, padx=5)
@@ -100,7 +99,6 @@ def getPic(query, mode):
         root = tk.Tk()
         root.title("图片选择器")
         root.geometry("600x400")
-
 
         # 图片显示区域
         image_frame = tk.Frame(root)
