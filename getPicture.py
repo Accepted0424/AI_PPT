@@ -9,12 +9,12 @@ from io import BytesIO
 
 # 获取 Unsplash 图片的函数
 def fetch_images(query):
-    unsplash_access_key = "YOUR_UNSPLASH_API"  # 替换为你的 Unsplash Access Key
+    unsplash_access_key = "EHskG9CrYx-PQg6F4fWResn2qgSEDKLCh-npEo3mlTY"  # 替换为你的 Unsplash Access Key
     url = "https://api.unsplash.com/search/photos"
     params = {
         "query": query,
         "client_id": unsplash_access_key,
-        "per_page": 10,  # 控制返回的图片数量
+        "per_page": 5,  # 控制返回的图片数量
     }
     response = requests.get(url, params=params)
     return response.json()["results"] if response.status_code == 200 else []
