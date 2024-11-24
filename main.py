@@ -5,6 +5,7 @@ import createGUI
 import subprocess
 from md_optimize import get_optimize_md
 from splitPDF import split_pdf
+from splitEpub import split_epub
 
 if __name__ == "__main__":
     # 图形界面
@@ -22,7 +23,12 @@ if __name__ == "__main__":
     # 富者愈富——复杂网络的先发优势
     # 爱因斯坦的馈赠——复杂网络的新星效应
     split_chapters_path = os.path.join("split_chapters")
-    split_pdf(book_path, split_flag, chapters, split_chapters_path)
+    if book_path[-3:] == 'pdf':
+        split_pdf(book_path, split_flag, chapters, split_chapters_path)
+    elif book_path[-4:] == 'epub':
+        split_epub(book_path, split_flag, chapters, split_chapters_path)
+    else :
+        print("错误的书籍格式输入\n")
 
     # 遍历分割章节生成ppt
     for i in range(0, len(chapters)):

@@ -70,13 +70,13 @@ def save_parts_to_txt(parts, output_folder, prefix='part_'):
         with open(file_path, 'w', encoding='utf-8') as file:
             file.write(part)
 
-def split_pdf(file_path, keywords, number, output_folder):
+def split_epub(file_path, keywords, number, output_folder):
     pdf_content = read_pdf(file_path)
     parts = split_text_by_keywords(pdf_content, keywords, number)
     save_parts_to_txt(parts, output_folder)
 
 if __name__ == "__main__":
-    pdf_file = r'C:\桌面\科研课堂\链接.epub'
+    epub_file = r'C:\桌面\科研课堂\链接.epub'
     # keywords 和 number从昊霖的输入中得到
     #幂律，复杂网络背后的规律
     #富者愈富——复杂网络的先发优势
@@ -86,4 +86,4 @@ if __name__ == "__main__":
                 '第8链 爱因斯坦的馈赠——复杂网络的新星效应在大多数复杂系统中，每个节点都有各自的特性。']
     number = [2,3]
     output_folder =  r'D:\pythonProject\AI_PPT\split_chapters'
-    split_pdf(pdf_file, keywords, number, output_folder)
+    split_epub(epub_file, keywords, number, output_folder)
