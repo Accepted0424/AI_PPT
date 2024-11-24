@@ -2,6 +2,7 @@ import json
 
 from openai import OpenAI
 from readBook import read_file
+from outline import polish
 import os
 
 
@@ -59,12 +60,12 @@ def call_api(book_path, prompt_file_path):
     with open(content_file_path, 'w', encoding='utf-8') as content_file:
         content_file.write(md_content)
         print("返回文件中的content部分已保存")
-    return md_content
+    polish_content = polish(content_file_path)
+    return polish_content
 
 
 # 直接运行该文件进行测试
 if __name__ == '__main__':
-    theme_test = input("请输入ppt的主题：")
     book_path_test = "book.pdf"
     prompt_file_path_test = "prompt.txt"
-    call_api(theme_test, book_path_test, prompt_file_path_test)
+    call_api(book_path_test, prompt_file_path_test)
