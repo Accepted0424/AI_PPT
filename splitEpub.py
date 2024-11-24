@@ -1,23 +1,29 @@
 import os
 import re
-import fitz  # 导入 PyMuPDF 库
+from ebooklib import epub
+from bs4 import BeautifulSoup
+
 
 def read_pdf(file_path):
-    """读取PDF文件内容"""
-    # 打开 PDF 文件
-    document = fitz.open(file_path)
+    """读取Epub文件内容"""
+    # 打开 EPUB 文件
+    book = epub.read_epub(file_path)
     text = ''
-    # 遍历每一页
-    for page_num in range(len(document)):
-        page = document.load_page(page_num)  # 加载页面
-        page_text = page.get_text("text")  # 提取文本
-        # 使用正则表达式匹配前面一个字符不是 "。" 的 \n
-        pattern = r'(?<!。)\n'
-        # 替换匹配到的 \n 为空字符串
-        page_text = re.sub(pattern, '', page_text)
-        text = text + page_text
-    # 关闭文档
-    document.close()
+    # 遍历书籍的所有项目
+    for item in book.get_items():
+        # 仅处理 XHTML 类型的章节内容
+        if item.media_type == 'application/xhtml+xml':
+            # 使用 get_body_content() 获取章节 HTML 内容
+            html_content = item.get_body_content().decode("utf-8")  # 解码为字符串
+            soup = BeautifulSoup(html_content, 'html.parser')
+            # 提取纯文本内容
+            text_content = soup.get_text(separator='\n', strip=True)
+            # 使用正则表达式匹配前面一个字符不是 "。" 的 \n
+            pattern = r'(?<!。)\n'
+            # 替换匹配到的 \n 为空字符串
+            text_content = re.sub(pattern, '', text_content)
+            text = text + text_content
+
     # 去掉没有意义的空白符
     text = text.replace(' ', '')
     text = text.replace('\t', '')
@@ -70,7 +76,7 @@ def split_pdf(file_path, keywords, number, output_folder):
     save_parts_to_txt(parts, output_folder)
 
 if __name__ == "__main__":
-    pdf_file = r'C:\桌面\科研课堂\链接.pdf'
+    pdf_file = r'C:\桌面\科研课堂\链接.epub'
     # keywords 和 number从昊霖的输入中得到
     #幂律，复杂网络背后的规律
     #富者愈富——复杂网络的先发优势
