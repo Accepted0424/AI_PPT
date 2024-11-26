@@ -2,9 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-# 假设这是生成PPT的方法
-
-
 # 读取文件内容
 def read_file(file_path):
     try:
@@ -48,6 +45,7 @@ def polish(file_path):
 
         # 保存修改后的内容到文件
         save_to_file(file_path, modified_content)
+        root.destroy()
         return modified_content
 
     # 创建生成PPT按钮
