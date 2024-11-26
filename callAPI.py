@@ -10,7 +10,8 @@ import os
 def call_api(book_path, prompt_file_path):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
+        # api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
+        api_key="sk-a08f57eb1f5b4baea1e98d1ef049eaef",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
@@ -19,16 +20,20 @@ def call_api(book_path, prompt_file_path):
         prompt_content = prompt_file.read()
 
     # 输入 prompt 内容
-    prompt = f"""我希望你使用markdown的格式,根据书籍内容,生成一个ppt大纲，并且请遵循以下要求:
-            1.如果要创建标题，请在单词或短语前面添加井号 (#) 。# 的数量代表了标题的级别。
+    '''
+    prompt = f"""使用markdown的格式，并且请严格遵循以下要求:
+            1.最少要有四级标题。
             2.第一级(#)表示ppt的标题,第二级(##)表示章节的标题,第三级(###)表示章节的重点,第四级(*)表示重点内容下的知识点,第四级下有对知识点的详细介绍，介绍时用(  *)表示分点.
+            2.第一级(#)内容固定为“本章内容”。第二级(##)表示。第三级(###)表示。第四级用(*)表示具体的知识点。
             3.每一章重点(###)知识点列举完之后用英语单词或短语概括该重点,用作关键词搜索图片,关键词应该与ppt的主题相符,用括号括起来,单独占一行,例如"(network)"
-            4.大纲的第一章是的简介，最后一章是总结；
-            5.生成的markdown文档不要用```包裹，不需要生成多于内容
+            4.生成的markdown文档不要用```包裹。
         """
+    '''
 
     # 读取 book.file 文件内容
-    file_content = read_file(book_path)
+    # file_content = read_file(book_path)
+    with open('chapters/part_1.txt', 'r', encoding='utf-8') as file:
+        file_content = file.read()
 
     # 创建聊天完成请求
     completion = client.chat.completions.create(
@@ -36,12 +41,12 @@ def call_api(book_path, prompt_file_path):
         temperature=0.4,
         top_p=0.9,
         messages=[
-            {'role': 'system', 'content': 'You are a helpful assistant.'},
+            {'role': 'system',
+             'content': 'You are a helpful assistant.'},
             {'role': 'user', 'content': f"文章内容：{file_content}"},
-            {'role': 'user', 'content': f"要求：{prompt}"},
-            {'role': 'user', 'content': f"每个点内容要十分详细,根据给出的文章内容扩写"},
             {'role': 'user', 'content': f"思考方式：{prompt_content}"},
         ]
+
     )
 
     # 将结果转换为 JSON 字符串
