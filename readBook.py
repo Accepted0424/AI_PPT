@@ -28,6 +28,8 @@ def read_pdf(book_path):
         # 替换匹配到的 \n 为空字符串
         page_text = re.sub(pattern, '', page_text)
         text = text + page_text
+    # 缩进
+    text = text.replace('\n', '\n  ')
     # 关闭文档
     document.close()
     return text
@@ -49,7 +51,7 @@ def read_epub(book_path):
     warnings.filterwarnings("ignore", category=FutureWarning)
     book = epub.read_epub(book_path)
 
-    text = ""
+    text = ''
     # 遍历书籍的所有项目
     for item in book.get_items():
         # 仅处理 XHTML 类型的章节内容
@@ -58,7 +60,15 @@ def read_epub(book_path):
             html_content = item.get_body_content().decode("utf-8")  # 解码为字符串
             soup = BeautifulSoup(html_content, 'html.parser')
             # 提取纯文本内容
-            text += soup.get_text(separator='\n', strip=True)
+            text_content = soup.get_text(separator='\n', strip=True)
+            # 使用正则表达式匹配前面一个字符不是 "。" 的 \n
+            pattern = r'(?<!。)\n'
+            # 替换匹配到的 \n 为空字符串
+            text_content = re.sub(pattern, '', text_content)
+            text = text + text_content
+
+    # 缩进
+    text = text.replace('\n', '\n  ')
     return text
 
 
