@@ -11,7 +11,7 @@ class gui:
 
         self.root = root
         self.root.title("PPT生成器")
-        self.root.geometry("500x400")
+        self.root.geometry("500x450")
 
         # Setup GUI
         self.setup_ui()

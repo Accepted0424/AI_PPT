@@ -78,8 +78,6 @@ def read_file(book_path):
         file_content = read_epub(book_path)
     else:
         raise FileNotFoundError
-    with open("text.txt", 'w', encoding='utf-8') as file:
-        file.write(file_content)
     return file_content
 
 

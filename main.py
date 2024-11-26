@@ -26,7 +26,7 @@ if __name__ == "__main__":
     split_and_save(book_contend, split_flag, chapters)
 
     # 遍历分割章节生成ppt
-    for i in range(0, len(chapters)):
+    for i in range(1, len(chapters) + 1):
         # 获取大模型返回内容
         chapter_path = f'chapters/part_{i}.txt'
         api_return_content = callAPI.call_api(chapter_path, prompt_file_path)
