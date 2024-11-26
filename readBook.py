@@ -68,7 +68,6 @@ def read_file(book_path):
         raise FileNotFoundError
 
     file_extension = os.path.splitext(book_path)[1].lower()
-    file_content = ''
     if file_extension == '.txt':
         file_content = read_txt(book_path)
     elif file_extension == '.pdf':
@@ -81,6 +80,7 @@ def read_file(book_path):
         raise FileNotFoundError
     with open("text.txt", 'w', encoding='utf-8') as file:
         file.write(file_content)
+    return file_content
 
 
 if __name__ == "__main__":
