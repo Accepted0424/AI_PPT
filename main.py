@@ -4,8 +4,7 @@ import callAPI
 import createGUI
 import subprocess
 from md_optimize import get_optimize_md
-from splitPDF import split_pdf
-from splitEpub import split_epub
+from develop_KMP import split_and_save
 
 if __name__ == "__main__":
     # 图形界面
@@ -23,17 +22,12 @@ if __name__ == "__main__":
     # 富者愈富——复杂网络的先发优势
     # 爱因斯坦的馈赠——复杂网络的新星效应
     split_chapters_path = os.path.join("split_chapters")
-    if book_path[-3:] == 'pdf':
-        split_pdf(book_path, split_flag, chapters, split_chapters_path)
-    elif book_path[-4:] == 'epub':
-        split_epub(book_path, split_flag, chapters, split_chapters_path)
-    else :
-        print("错误的书籍格式输入\n")
+    split_and_save(book_path, split_flag, chapters)
 
     # 遍历分割章节生成ppt
     for i in range(0, len(chapters)):
         # 获取大模型返回内容
-        chapter_path = f'split_chapters/part_{i}.txt'
+        chapter_path = f'chapters/part_{i}.txt'
         api_return_content = callAPI.call_api(chapter_path, prompt_file_path)
         # 调整md，嵌入图片
         get_optimize_md()

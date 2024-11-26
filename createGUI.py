@@ -22,7 +22,7 @@ class gui:
         self.book_button = tk.Button(self.root, text="选择书籍文件", command=self.select_book_file)
         self.book_button.pack(pady=10)
 
-        self.book_file_label = tk.Label(self.root, text="支持.epub、.pdf格式")
+        self.book_file_label = tk.Label(self.root, text="支持.epub、.pdf、.txt、.docx格式")
         self.book_file_label.pack(pady=5)
 
         self.prompt_button = tk.Button(self.root, text="选择Prompt文件", command=self.select_prompt_file)

@@ -1,7 +1,8 @@
-import os
+import warnings
 import docx
-import ebooklib
-from PyPDF2 import PdfReader
+import os
+import re
+import fitz
 from ebooklib import epub
 from bs4 import BeautifulSoup
 
@@ -14,10 +15,21 @@ def read_txt(book_path):
 
 # 处理 PDF 文件
 def read_pdf(book_path):
-    pdf_reader = PdfReader(book_path)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text()
+    """读取PDF文件内容"""
+    # 打开 PDF 文件
+    document = fitz.open(book_path)
+    text = ''
+    # 遍历每一页
+    for page_num in range(len(document)):
+        page = document.load_page(page_num)  # 加载页面
+        page_text = page.get_text("text")  # 提取文本
+        # 使用正则表达式匹配前面一个字符不是 "。" 的 \n
+        pattern = r'(?<!。)\n'
+        # 替换匹配到的 \n 为空字符串
+        page_text = re.sub(pattern, '', page_text)
+        text = text + page_text
+    # 关闭文档
+    document.close()
     return text
 
 
@@ -32,30 +44,44 @@ def read_docx(book_path):
 
 # 处理 EPUB 文件
 def read_epub(book_path):
+    # 打开 EPUB 文件
+    warnings.filterwarnings("ignore", category=UserWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
     book = epub.read_epub(book_path)
-    text = ''
-    # 遍历所有的 HTML 文件并提取文本
+
+    text = ""
+    # 遍历书籍的所有项目
     for item in book.get_items():
-        if item.get_type() == ebooklib.ITEM_DOCUMENT:
-            soup = BeautifulSoup(item.content, 'html.parser')
-            text += soup.get_text() + '\n'
+        # 仅处理 XHTML 类型的章节内容
+        if item.media_type == 'application/xhtml+xml':
+            # 使用 get_body_content() 获取章节 HTML 内容
+            html_content = item.get_body_content().decode("utf-8")  # 解码为字符串
+            soup = BeautifulSoup(html_content, 'html.parser')
+            # 提取纯文本内容
+            text += soup.get_text(separator='\n', strip=True)
     return text
 
 
 # 主函数，判断文件扩展名并调用相应的读取方法
 def read_file(book_path):
     if not os.path.exists(book_path):
-        return "文件不存在"
+        raise FileNotFoundError
 
     file_extension = os.path.splitext(book_path)[1].lower()
-
-    if file_extension == '.txt' or file_extension == '.md':
-        return read_txt(book_path)
+    file_content = ''
+    if file_extension == '.txt':
+        file_content = read_txt(book_path)
     elif file_extension == '.pdf':
-        return read_pdf(book_path)
+        file_content = read_pdf(book_path)
     elif file_extension == '.docx':
-        return read_docx(book_path)
+        file_content = read_docx(book_path)
     elif file_extension == '.epub':
-        return read_epub(book_path)
+        file_content = read_epub(book_path)
     else:
-        return "不支持的文件格式"
+        raise FileNotFoundError
+    with open("text.txt", 'w', encoding='utf-8') as file:
+        file.write(file_content)
+
+
+if __name__ == "__main__":
+    print(read_file("link.epub"))
