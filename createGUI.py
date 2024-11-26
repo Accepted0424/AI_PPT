@@ -13,7 +13,7 @@ class gui:
 
         self.root = root
         self.root.title("PPT生成器")
-        self.root.geometry("500x500")
+        self.root.geometry("500x400")
 
         # Setup GUI
         self.setup_ui()
@@ -31,19 +31,13 @@ class gui:
         self.prompt_file_label = tk.Label(self.root, text="支持.txt格式")
         self.prompt_file_label.pack(pady=5)
 
-        self.output_button = tk.Button(self.root, text="导出位置", command=self.select_output_file)
-        self.output_button.pack(pady=10)
-
-        self.output_file_label = tk.Label(self.root, text="请选择有效位置")
-        self.output_file_label.pack(pady=5)
-
         self.label_split = tk.Label(self.root, text="分割标志，用换行符分隔")
         self.label_split.pack(pady=5)
 
         self.text_split = tk.Text(self.root, height=5, width=50)
         self.text_split.pack(pady=5)
 
-        self.label_chapter = tk.Label(self.root, text="选择章节，用逗号分隔")
+        self.label_chapter = tk.Label(self.root, text="选择章节，用英文逗号分隔")
         self.label_chapter.pack(pady=5)
 
         self.entry_chapter = tk.Entry(self.root, width=50)
@@ -67,13 +61,6 @@ class gui:
         )
         if self.prompt_file_path:
             self.prompt_file_label.config(text=f"已选择文件: {self.prompt_file_path}")
-
-    def select_output_file(self):
-        self.output_file_path = filedialog.askdirectory(
-            title="选择导出位置",
-        )
-        if self.output_file_path:
-            self.output_file_label.config(text=f"已选择导出位置: {self.output_file_path}")
 
     def get_label(self):
         try:
