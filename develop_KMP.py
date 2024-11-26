@@ -1,3 +1,4 @@
+import os
 import re
 
 from readBook import read_file
@@ -76,8 +77,11 @@ def split_and_save(text, patterns, nums):
         if num > len(splits):
             continue
         save_text.append(splits[num - 1])
+    file_dir = 'chapters'
+    if not os.path.exists(file_dir):
+        os.makedirs(file_dir)
     for i, part in enumerate(save_text, 1):
-        file_path = f'chapters/part_{i}.txt'
+        file_path = os.path.join(file_dir, f'part_{i}.txt')
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(part)
             print(f"保存成功: {file_path}")
