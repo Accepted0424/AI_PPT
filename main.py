@@ -22,9 +22,8 @@ if __name__ == "__main__":
     # 幂律，复杂网络背后的规律
     # 富者愈富——复杂网络的先发优势
     # 爱因斯坦的馈赠——复杂网络的新星效应
-    split_chapters_path = os.path.join("split_chapters")
     book_extend = read_file(book_path)
-    split_and_save(book_path, split_flag, chapters)
+    split_and_save(book_extend, split_flag, chapters)
 
     # 遍历分割章节生成ppt
     for i in range(0, len(chapters)):
