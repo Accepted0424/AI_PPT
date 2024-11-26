@@ -10,8 +10,8 @@ import os
 def call_api(book_path, prompt_file_path):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        # api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
-        api_key="sk-a08f57eb1f5b4baea1e98d1ef049eaef",
+        api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
+        # api_key="sk-a08f57eb1f5b4baea1e98d1ef049eaef",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
@@ -31,10 +31,11 @@ def call_api(book_path, prompt_file_path):
     '''
 
     # 读取 book.file 文件内容
-    # file_content = read_file(book_path)
+    file_content = read_file(book_path)
+    '''
     with open('chapters/part_1.txt', 'r', encoding='utf-8') as file:
         file_content = file.read()
-
+    '''
     # 创建聊天完成请求
     completion = client.chat.completions.create(
         model="qwen-plus",
