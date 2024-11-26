@@ -1,10 +1,9 @@
-import os
 import tkinter as tk
 import callAPI
 import createGUI
 import subprocess
 from md_optimize import get_optimize_md
-from develop_KMP import split_and_save
+from ACsearch import split_and_save
 from readBook import read_file
 
 if __name__ == "__main__":
