@@ -60,8 +60,8 @@ def call_api(book_path, prompt_file_path):
     with open(content_file_path, 'w', encoding='utf-8') as content_file:
         content_file.write(md_content)
         print("返回文件中的content部分已保存")
-    polish_content = polish(content_file_path)
-    return polish_content
+    # polish_content = polish(content_file_path)
+    return True
 
 
 # 直接运行该文件进行测试

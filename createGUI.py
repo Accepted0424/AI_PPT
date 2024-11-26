@@ -1,12 +1,16 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QTextEdit, QLineEdit, QVBoxLayout, QWidget, QFileDialog,
-    QMessageBox, QHBoxLayout, QSplitter
+    QMessageBox, QHBoxLayout, QSplitter, QDialog
 )
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
 import markdown
+from anyio._backends._asyncio import WorkerThread
+import callAPI
+from callAPI import call_api
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -17,6 +21,7 @@ class MainWindow(QMainWindow):
         self.prompt_file_path = ''
         self.output_file_path = ''
         self.pages = ''
+        self.api_request = None
 
         # 窗口设置
         self.setWindowTitle("PPT生成器")
@@ -117,11 +122,28 @@ class MainWindow(QMainWindow):
 
         # 生成按钮
         self.generate_button = QPushButton("下一步")
-        self.generate_button.clicked.connect(self.open_markdown_editor)
+        self.generate_button.clicked.connect(self.show_loading_and_request)
         layout.addWidget(self.generate_button, alignment=Qt.AlignCenter)
 
         # 设置布局
         central_widget.setLayout(layout)
+
+    def show_loading_and_request(self):
+        """显示加载界面并请求api"""
+        self.close()
+        # 创建加载窗口
+        self.loading_dialog = LoadingDialog(self)
+        self.loading_dialog.show()
+
+        # 启动后台任务
+        self.worker = ApiWorker(self.book_path,self.prompt_file_path)
+        self.worker.result_ready.connect(self.show_md_editor)
+        self.worker.start()
+
+    def show_md_editor(self):
+        self.loading_dialog.close()
+        self.mdEditor = MdEditorWindow()
+        self.mdEditor.show()
 
     def select_book_file(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -145,14 +167,41 @@ class MainWindow(QMainWindow):
             self.output_file_path = dir_path
             self.output_file_label.setText(f"已选择导出位置: {self.output_file_path}")
 
-    def quit_program(self):
-        try:
-            self.split_flags = self.text_split.toPlainText().strip().split('\n')
-            entry_chapter_number_str = self.entry_chapter.text().split(',')
-            self.chapters = [int(num) for num in entry_chapter_number_str]
-            self.close()
-        except ValueError as e:
-            QMessageBox.critical(self, "输入错误", f"请检查输入: {e}")
+class ApiWorker(QThread):
+    result_ready = pyqtSignal(object)  # 信号：API 请求完成后返回结果
+
+    def __init__(self, book_path, prompt_file_path, parent=None):
+        super().__init__(parent)
+        self.book_path = book_path
+        self.prompt_file_path = prompt_file_path
+
+    def run(self):
+        """在后台线程中调用 API"""
+        response = call_api(self.book_path, self.prompt_file_path)
+        self.result_ready.emit(response)
+
+class LoadingDialog(QDialog):
+    """加载界面"""
+
+    WINDOW_TITLE = "Loading"
+    WINDOW_WIDTH = 500
+    WINDOW_HEIGHT = 500
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._setup_ui()
+
+    def _setup_ui(self):
+        """设置 UI 界面"""
+        self.setWindowTitle(self.WINDOW_TITLE)
+        self.setModal(True)
+        self.setFixedSize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
+
+        layout = QVBoxLayout(self)
+
+        loading_label = QLabel("Loading, please wait...", self)
+        loading_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(loading_label)
 
 class MdEditorWindow(QMainWindow):
     def __init__(self):
@@ -164,6 +213,37 @@ class MdEditorWindow(QMainWindow):
         content = ''
         with open('api_return_src/content_format.md', 'r+', encoding='utf-8') as f:
             content = f.read()
+
+        self.setStyleSheet("""
+                   QLabel {
+                       font-family: "Microsoft YaHei";
+                       font-size: 16px;
+                       color: #333333;
+                   }
+                   QPushButton {
+                       font-family: "Microsoft YaHei";
+                       font-size: 16px;
+                       background-color: #d3d3d3;
+                       color: black;
+                       padding: 8px 16px;
+                       border-radius: 8px;
+                   }
+                   QPushButton:hover {
+                       background-color: #c0c0c0;
+                   }
+                   QTextEdit, QLineEdit{
+                       font-family: "Microsoft YaHei";
+                       font-size: 16px;
+                       border: 1px solid #cccccc;
+                       border-radius: 4px;
+                       padding: 4px;
+                   }
+                   QMainWindow {
+                       font-family: "Microsoft YaHei";
+                       font-size: 16px;
+                       background-color: #f9f9f9;
+                   }
+               """)
 
         # 设置布局
         layout = QVBoxLayout()
@@ -193,11 +273,21 @@ class MdEditorWindow(QMainWindow):
         # 将分隔器添加到布局
         layout.addWidget(splitter)
 
+        self.submit_button = QPushButton('生成ppt')
+        self.submit_button.setFixedSize(100, 50)
+        # 创建水平布局来包含按钮，以便居中对齐
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        button_layout.addWidget(self.submit_button)
+        button_layout.addStretch()
+
+        # 将按钮的水平布局添加到主布局
+        layout.addLayout(button_layout)
+
         # 设置中央部件
         central_widget = QWidget(self)
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-
         self.update_rendered_view()  # 初始化渲染
 
     def update_rendered_view(self):
@@ -215,6 +305,6 @@ class MdEditorWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    gui = MdEditorWindow()
+    gui = MainWindow()
     gui.show()
     sys.exit(app.exec_())
