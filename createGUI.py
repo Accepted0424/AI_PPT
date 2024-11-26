@@ -1,3 +1,4 @@
+
 import subprocess
 import sys
 from PyQt5.QtWidgets import (
@@ -11,39 +12,25 @@ import markdown
 from callAPI import call_api
 from md_optimize import get_optimize_md
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.chapters = None
-        self.split_flags = None
-        self.book_path = ''
-        self.prompt_file_path = ''
-        self.output_file_path = ''
-        self.pages = ''
         self.api_request = None
-
         # 窗口设置
         self.setWindowTitle("PPT生成器")
         self.setGeometry(100, 100, 600, 600)
         self.setWindowIcon(QIcon("buaa_cs_logo.png"))
-
         # 设置 UI
-        self.setup_ui()
-
     def open_markdown_editor(self):
         # 创建并显示 Markdown 编辑窗口
         self.editor_window = MdEditorWindow()
         self.editor_window.show()
         self.close()  # 可选：关闭主窗口
 
-    def setup_ui(self):
         # 中央控件
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-
         layout = QVBoxLayout()
-
         # 添加样式
         self.setStyleSheet("""
             QLabel {
@@ -75,80 +62,52 @@ class MainWindow(QMainWindow):
                 background-color: #f9f9f9;
             }
         """)
-
         # 选择书籍文件
         self.book_button = QPushButton("选择书籍文件")
         self.book_button.clicked.connect(self.select_book_file)
         layout.addWidget(self.book_button, alignment=Qt.AlignCenter)
-
         self.book_file_label = QLabel("支持.epub、.pdf、.txt、.docx格式")
         self.book_file_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.book_file_label)
-
         # 选择 Prompt 文件
         self.prompt_button = QPushButton("选择 Prompt 文件")
         self.prompt_button.clicked.connect(self.select_prompt_file)
         layout.addWidget(self.prompt_button, alignment=Qt.AlignCenter)
-
         self.prompt_file_label = QLabel("支持 .txt 格式")
         self.prompt_file_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.prompt_file_label)
-
         # 选择导出位置
         self.output_button = QPushButton("导出位置")
         self.output_button.clicked.connect(self.select_output_file)
         layout.addWidget(self.output_button, alignment=Qt.AlignCenter)
-
         self.output_file_label = QLabel("请选择有效位置")
         self.output_file_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.output_file_label)
-
         # 分割标志
         self.label_split = QLabel("分割标志，用换行符分隔")
         self.label_split.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.label_split)
-
         self.text_split = QTextEdit()
         self.text_split.setFixedHeight(80)
         layout.addWidget(self.text_split)
-
         # 选择章节
         self.label_chapter = QLabel("选择章节，用逗号分隔")
         self.label_chapter.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.label_chapter)
-
         self.entry_chapter = QLineEdit()
         layout.addWidget(self.entry_chapter)
-
         # 生成按钮
         self.generate_button = QPushButton("下一步")
         self.generate_button.clicked.connect(self.show_loading_and_request)
         layout.addWidget(self.generate_button, alignment=Qt.AlignCenter)
-
         # 设置布局
         central_widget.setLayout(layout)
 
     def get_flag_and_chapters(self):
-        try:
-            # 验证 chapters 中的元素是否符合要求
-            if not all(isinstance(chapter, int) and chapter > 0 for chapter in self.chapters):
-                raise ValueError("每个 chapter 必须是正整数")
-
-            if not all(chapter <= len(self.split_flags) + 1 for chapter in self.chapters):
-                raise ValueError("章节号超出范围")
-
-            # 如果验证通过，返回结果
             self.split_flags = self.text_split.toPlainText().split('\n')
             chapters_str = self.entry_chapter.text().split(',，')
             chapters_list = [int(num) for num in chapters_str]
             self.chapters = chapters_list
-            return self.split_flags, self.chapters
-
-        except ValueError as e:
-            # 捕获并处理验证过程中发生的错误
-            print(f"错误: {e}")
-            return None
-
     def show_loading_and_request(self):
         """显示加载界面并请求api"""
         # 创建加载窗口
@@ -355,19 +314,16 @@ class MdEditorWindow(QMainWindow):
             self.content = file.read()
         self.markdown_editor.setPlainText(self.content)
         self.md_path = file_path
-
     def update_rendered_view(self):
         # 获取 Markdown 原码并转换为 HTML
         self.content = self.markdown_editor.toPlainText()
         html_content = markdown.markdown(self.content)
         self.rendered_view.setHtml(html_content)  # 更新右侧渲染内容
-
     def moveWebScrollBar(self):
         """同步 Markdown 编辑器滚动条与渲染视图的滚动位置"""
         # 获取 Markdown 编辑器的滚动条位置
         md_vsb_value = self.md_vsb.value()
         self.rendered_view.page().runJavaScript(f"window.scrollTo(0, {md_vsb_value});")
-
     def save_file(self):
         with open(self.md_path, 'w', encoding='utf-8') as file:
             file.write(self.content)
