@@ -8,8 +8,6 @@ class gui:
         self.split_flags = None
         self.book_path = ''
         self.prompt_file_path = ''
-        self.output_file_path = ''
-        self.pages = ''
 
         self.root = root
         self.root.title("PPT生成器")
@@ -84,9 +82,6 @@ class gui:
 
     def get_prompt_file_path(self):
         return self.prompt_file_path
-
-    def get_output_file_path(self):
-        return self.output_file_path
 
     def quit_program(self):
         self.split_flags = self.text_split.get("1.0", tk.END).strip().split('\n')
