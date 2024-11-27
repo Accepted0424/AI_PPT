@@ -46,7 +46,7 @@ class AC:
                     child_node.output.extend(child_node.fail.output)
                 queue.append(child_node)
 
-    def search(self, text):
+    def search(self, text, patterns):
         node = self.root
         matches = set()
         count = 0
@@ -84,12 +84,13 @@ def split_by_matches(text, matches):
 
 
 def split_and_save(text, patterns, nums):
+    patterns = [re.sub(r"[\s\v\f\r\n\t]+", '', pattern).strip() for pattern in patterns]
     nums = sorted(nums)
     ac = AC()
     for i, pattern in enumerate(patterns):
         ac.insert(pattern, i)
     ac.build()
-    matches = ac.search(text)
+    matches = ac.search(text, patterns)
     splits = split_by_matches(text, matches)
     save_text = []
     for num in nums:
@@ -123,8 +124,8 @@ if __name__ == "__main__":
         '第12链 分裂的万维网万维网远非由节点和链接组成的一个匀质的海洋，它分裂成四块大陆，其中每块大陆上又有许多的村庄和城市，它们以重叠社区的形式出现。',
         '第13链 生命的地图虽然所有的生物体都具有同样的枢纽节点，但不同生物体中连通度较小的分子却各不相同。',
         '第14链 网络新经济从网络的角度去理解宏观经济的相互依赖性，能帮助我们预见和控制未来的危机。',
-        '第15链 一张没有蜘蛛的网遮盖细节可以提高我们的感知和观察能力。'
+        '第15链 一张没有蜘蛛的网遮盖细节可以提高我们的感知和观察能力。',
+        '注释第1链 网络让世界变得不同媒体就MafiaBoy的故事进行了广泛讨论。'
     ]
-    patterns = [re.sub(r"[\s\v\f\r\n\t]+", '', pattern).strip() for pattern in patterns]
     numbers = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     split_and_save(text, patterns, numbers)
