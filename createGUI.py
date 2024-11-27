@@ -1,15 +1,15 @@
+import subprocess
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QTextEdit, QLineEdit, QVBoxLayout, QWidget, QFileDialog,
-    QMessageBox, QHBoxLayout, QSplitter, QDialog
+    QMessageBox, QHBoxLayout, QSplitter, QDialog, QFileSystemModel, QTreeView
 )
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QModelIndex
 import markdown
-from anyio._backends._asyncio import WorkerThread
-import callAPI
 from callAPI import call_api
+from md_optimize import get_optimize_md
 
 
 class MainWindow(QMainWindow):
@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         # 窗口设置
         self.setWindowTitle("PPT生成器")
         self.setGeometry(100, 100, 600, 600)
-        self.setWindowIcon(QIcon("icon.png"))  # 使用自己的图标文件路径
+        self.setWindowIcon(QIcon("buaa_cs_logo.png"))
 
         # 设置 UI
         self.setup_ui()
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         self.book_button.clicked.connect(self.select_book_file)
         layout.addWidget(self.book_button, alignment=Qt.AlignCenter)
 
-        self.book_file_label = QLabel("支持 .epub、.pdf 格式")
+        self.book_file_label = QLabel("支持.epub、.pdf、.txt、.docx格式")
         self.book_file_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.book_file_label)
 
@@ -128,20 +128,41 @@ class MainWindow(QMainWindow):
         # 设置布局
         central_widget.setLayout(layout)
 
+    def get_flag_and_chapters(self):
+        try:
+            # 验证 chapters 中的元素是否符合要求
+            if not all(isinstance(chapter, int) and chapter > 0 for chapter in self.chapters):
+                raise ValueError("每个 chapter 必须是正整数")
+
+            if not all(chapter <= len(self.split_flags) + 1 for chapter in self.chapters):
+                raise ValueError("章节号超出范围")
+
+            # 如果验证通过，返回结果
+            self.split_flags = self.text_split.toPlainText().split('\n')
+            chapters_str = self.entry_chapter.text().split(',，')
+            chapters_list = [int(num) for num in chapters_str]
+            self.chapters = chapters_list
+            return self.split_flags, self.chapters
+
+        except ValueError as e:
+            # 捕获并处理验证过程中发生的错误
+            print(f"错误: {e}")
+            return None
+
     def show_loading_and_request(self):
         """显示加载界面并请求api"""
-        self.close()
         # 创建加载窗口
+        split_flags, chapters = self.get_flag_and_chapters()
         self.loading_dialog = LoadingDialog(self)
         self.loading_dialog.show()
-
+        self.hide()
         # 启动后台任务
-        self.worker = ApiWorker(self.book_path,self.prompt_file_path)
+        self.worker = ApiWorker(self.book_path, self.prompt_file_path, self.output_file_path, split_flags, chapters)
         self.worker.result_ready.connect(self.show_md_editor)
         self.worker.start()
 
     def show_md_editor(self):
-        self.loading_dialog.close()
+        self.loading_dialog.hide()
         self.mdEditor = MdEditorWindow()
         self.mdEditor.show()
 
@@ -170,15 +191,27 @@ class MainWindow(QMainWindow):
 class ApiWorker(QThread):
     result_ready = pyqtSignal(object)  # 信号：API 请求完成后返回结果
 
-    def __init__(self, book_path, prompt_file_path, parent=None):
+    def __init__(self, book_path, prompt_file_path, split_flags, chapters, parent=None):
         super().__init__(parent)
         self.book_path = book_path
         self.prompt_file_path = prompt_file_path
+        self.split_flags = split_flags
+        self.chapters = chapters
 
     def run(self):
         """在后台线程中调用 API"""
         response = call_api(self.book_path, self.prompt_file_path)
         self.result_ready.emit(response)
+
+        for i in range(0, len(self.chapters)):
+            # 获取大模型返回内容
+            chapter_path = f'split_chapters/part_{i}.txt'
+            call_api(chapter_path, self.prompt_file_path, )
+            # 调整md，嵌入图片
+            get_optimize_md()
+            command = ['python', './md2pptx/md2pptx', './api_return_src/content_format.md', f'output_{i}.pptx']
+            # 使用 subprocess.run 执行命令
+            subprocess.run(command)
 
 class LoadingDialog(QDialog):
     """加载界面"""
@@ -194,6 +227,7 @@ class LoadingDialog(QDialog):
     def _setup_ui(self):
         """设置 UI 界面"""
         self.setWindowTitle(self.WINDOW_TITLE)
+        self.setWindowIcon(QIcon("buaa_cs_logo.png"))
         self.setModal(True)
         self.setFixedSize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
 
@@ -208,12 +242,7 @@ class MdEditorWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle('修改大纲')
         self.setGeometry(100, 100, 1500, 1000)
-
-        # 读取 Markdown 文件内容
-        content = ''
-        with open('api_return_src/content_format.md', 'r+', encoding='utf-8') as f:
-            content = f.read()
-
+        self.setWindowIcon(QIcon("buaa_cs_logo.png"))
         self.setStyleSheet("""
                    QLabel {
                        font-family: "Microsoft YaHei";
@@ -250,10 +279,33 @@ class MdEditorWindow(QMainWindow):
 
         # 创建一个 QSplitter，用于左右分隔两个控件
         splitter = QSplitter(Qt.Horizontal, self)
+        sub_splitter = QSplitter(Qt.Horizontal, self)
+
+        # 创建文件系统模型和视图
+        self.file_model = QFileSystemModel()
+        self.file_model.setRootPath('api_return_src')  # 根目录
+        self.file_model.setNameFilters(['*.md'])  # 只显示Markdown文件
+        self.file_model.setNameFilterDisables(False)
+
+        self.file_view = QTreeView()
+        self.file_view.setModel(self.file_model)
+        self.file_view.setRootIndex(self.file_model.index('api_return_src'))  # 设置初始路径
+        self.file_view.setColumnHidden(1,True)
+        self.file_view.setColumnHidden(2,True)
+        self.file_view.setColumnWidth(0, 200)  # 设置文件名列宽度
+        self.file_view.setColumnWidth(3, 100)  # 设置修改日期列宽度
+        self.file_view.clicked.connect(self.open_file)
+
+        # 创建左侧的文件栏 QTreeView
+        splitter.addWidget(self.file_view)
 
         # 创建左侧的 QTextEdit，用于编辑 Markdown 原码
         self.markdown_editor = QTextEdit(self)
-        self.markdown_editor.setPlainText(content)
+        self.md_path = 'api_return_src/content_format.md'
+        self.content = ''
+        with open(self.md_path, 'r+', encoding='utf-8') as f:
+            self.content = f.read()
+        self.markdown_editor.setPlainText(self.content)
         self.markdown_editor.textChanged.connect(self.update_rendered_view)  # 监听内容变化
 
         # 创建右侧的 QWebEngineView，用于显示渲染后的 HTML
@@ -264,20 +316,27 @@ class MdEditorWindow(QMainWindow):
         self.md_vsb.valueChanged.connect(self.moveWebScrollBar)
 
         # 添加控件到分隔器
-        splitter.addWidget(self.markdown_editor)
-        splitter.addWidget(self.rendered_view)
+        sub_splitter.addWidget(self.markdown_editor)
+        sub_splitter.addWidget(self.rendered_view)
+        splitter.addWidget(sub_splitter)
 
         # 设置分隔器比例
-        splitter.setSizes([500, 500])
+        splitter.setSizes([300, 1000])
+        sub_splitter.setSizes([500,500])
 
         # 将分隔器添加到布局
         layout.addWidget(splitter)
+
+        self.save_button = QPushButton('保存当前md文件')
+        self.save_button.setFixedSize(200, 50)
+        self.save_button.clicked.connect(self.save_file)
 
         self.submit_button = QPushButton('生成ppt')
         self.submit_button.setFixedSize(100, 50)
         # 创建水平布局来包含按钮，以便居中对齐
         button_layout = QHBoxLayout()
         button_layout.addStretch()
+        button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.submit_button)
         button_layout.addStretch()
 
@@ -290,10 +349,17 @@ class MdEditorWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         self.update_rendered_view()  # 初始化渲染
 
+    def open_file(self, index: QModelIndex):
+        file_path = self.file_model.filePath(index)
+        with open(file_path, 'r', encoding='utf-8') as file:
+            self.content = file.read()
+        self.markdown_editor.setPlainText(self.content)
+        self.md_path = file_path
+
     def update_rendered_view(self):
         # 获取 Markdown 原码并转换为 HTML
-        markdown_content = self.markdown_editor.toPlainText()
-        html_content = markdown.markdown(markdown_content)
+        self.content = self.markdown_editor.toPlainText()
+        html_content = markdown.markdown(self.content)
         self.rendered_view.setHtml(html_content)  # 更新右侧渲染内容
 
     def moveWebScrollBar(self):
@@ -302,6 +368,9 @@ class MdEditorWindow(QMainWindow):
         md_vsb_value = self.md_vsb.value()
         self.rendered_view.page().runJavaScript(f"window.scrollTo(0, {md_vsb_value});")
 
+    def save_file(self):
+        with open(self.md_path, 'w', encoding='utf-8') as file:
+            file.write(self.content)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
