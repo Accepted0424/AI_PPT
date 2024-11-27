@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 import callAPI
 import createGUI
@@ -28,9 +29,12 @@ if __name__ == "__main__":
     for i in range(1, len(chapters) + 1):
         # 获取大模型返回内容
         chapter_path = f'chapters/part_{i}.txt'
-        api_return_content = callAPI.call_api(chapter_path, prompt_file_path)
+        api_path = f'./apiReturn/content_{i}.md'
+        out_path = f'./PPT/output_{i}.pptx'
+        callAPI.call_api(chapter_path, prompt_file_path)
         # 调整md，嵌入图片
-        get_optimize_md()
-        command = ['python', './md2pptx/md2pptx', './api_return_src/content_format.md', f'output_{i}.pptx']
+        get_optimize_md(api_path)
+        os.makedirs('PPT', exist_ok=True)
+        command = ['python', './md2pptx/md2pptx', api_path, out_path]
         # 使用 subprocess.run 执行命令
         subprocess.run(command)

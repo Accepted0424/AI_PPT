@@ -1,10 +1,9 @@
-import os
 import re
 
 from getPicture import getPic
 
 
-def get_optimize_md():
+def get_optimize_md(api_path):
     # config
     new_content = ('template: Martin Template.pptx\n'
                    + 'cardlayout: horizontal\n'
@@ -14,8 +13,7 @@ def get_optimize_md():
                    + 'cardshadow: yes\n'
                    + 'cardshape: rounded\n\n')
 
-    api_return_content_path = r'.\api_return_src\content_format.md'
-    with open(api_return_content_path, 'r+', encoding='utf-8') as f:
+    with open(api_path, 'r+', encoding='utf-8') as f:
         content = f.read()
         # 获取图片关键词，删去关键词，增加图片链接
         for line in content.split('\n'):
@@ -36,7 +34,3 @@ def get_optimize_md():
         f.seek(0)
         f.write(new_content)
         f.truncate()
-
-
-if __name__ == '__main__':
-    get_optimize_md()

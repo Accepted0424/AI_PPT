@@ -7,10 +7,11 @@ import os
 
 
 # 调用API生成目标文字
-def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
+def call_api(book_path, prompt_file_path, temp=0.4, top=0.5):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key="sk-e1b95b4233e14a87bbad7c634812b5a7",
+        api_key="sk-4ebdf9c7200b491f9f55767afdd006bb",
+        # api_key="sk-e1b95b4233e14a87bbad7c634812b5a7",
         # api_key="sk-a08f57eb1f5b4baea1e98d1ef049eaef",
         # api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -52,19 +53,21 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
     content = json.loads(response)
     md_content = content['choices'][0]['message']['content']
 
-    # 将返回内容保存到文件夹“api_return_src”，用于缓存和测试
-    folder_path = "api_return_src"
-    completion_file_path = os.path.join(folder_path, "completion.json")
+    # 将返回内容保存到文件夹“apiReturn”，用于缓存和测试
+    folder_path = "apiReturn"
+    md_path = "optimize"
     os.makedirs(folder_path, exist_ok=True)
-    with open(completion_file_path, 'w', encoding='utf-8') as completion_file:
-        completion_file.write(response)
-        print("api返回文件已保存")
-    content_file_path = os.path.join(folder_path, "content_format.md")
+    os.makedirs(md_path, exist_ok=True)
+    num = len([name for name in os.listdir(folder_path) if name.startswith("content")])
+    md_file_path = os.path.join(md_path, f"content_{num + 1}.md")
+    content_file_path = os.path.join(folder_path, f"content_{num + 1}.md")
     with open(content_file_path, 'w', encoding='utf-8') as content_file:
         content_file.write(md_content)
+    with open(md_file_path, 'w', encoding='utf-8') as md_file:
+        md_file.write(md_content)
         print("返回文件中的content部分已保存")
-    polish_content = polish(content_file_path)
-    return polish_content
+    file_path = [md_file_path, content_file_path]
+    polish(file_path)
 
 
 # 直接运行该文件进行测试
