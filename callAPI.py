@@ -1,4 +1,5 @@
 import json
+import re
 
 from openai import OpenAI
 from readBook import read_file
@@ -57,9 +58,12 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.5):
     md_path = "optimize"
     os.makedirs(folder_path, exist_ok=True)
     os.makedirs(md_path, exist_ok=True)
-    num = len([name for name in os.listdir(folder_path) if name.startswith("content")])
-    md_file_path = os.path.join(md_path, f"content_{num + 1}.md")
-    content_file_path = os.path.join(folder_path, f"content_{num + 1}.md")
+    # 正则表达式获取文件路径中的序号，避免并行运行时序号错误
+    pattern = r'chapters/part_(\d+)\.txt'
+    match = re.match(pattern, book_path)
+    i = int(match.group(1))
+    md_file_path = os.path.join(md_path, f"content_{i}.md")
+    content_file_path = os.path.join(folder_path, f"content_{i}.md")
     with open(content_file_path, 'w', encoding='utf-8') as content_file:
         content_file.write(md_content)
     with open(md_file_path, 'w', encoding='utf-8') as md_file:
