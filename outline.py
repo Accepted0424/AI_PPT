@@ -2,26 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-# 读取文件内容
-def read_file(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return file.read()
-    except Exception as e:
-        messagebox.showerror("错误", f"无法读取文件: {e}")
-        return ""
-
-
-# 将修改后的内容写回文件
-def save_to_file(file_path, content):
-    try:
-        with open(file_path, 'w', encoding='utf-8') as file:
-            file.write(content)
-        messagebox.showinfo("成功", "内容已保存！")
-    except Exception as e:
-        messagebox.showerror("错误", f"无法保存文件: {e}")
-
-
 # 创建Tkinter窗口
 def polish(file_path):
     # 创建主窗口
@@ -33,7 +13,8 @@ def polish(file_path):
     text_area.pack(padx=10, pady=10)
 
     # 读取文件内容并显示
-    content = read_file(file_path)
+    with open(file_path[0], 'r', encoding='utf-8') as file:
+        content = file.read()
     text_area.insert(tk.END, content)
 
     # 按钮点击事件：保存文件并生成PPT
@@ -44,7 +25,10 @@ def polish(file_path):
             return
 
         # 保存修改后的内容到文件
-        save_to_file(file_path, modified_content)
+        with open(file_path[0], 'w', encoding='utf-8') as file:
+            file.write(content)
+        with open(file_path[1], 'w', encoding='utf-8') as file:
+            file.write(content)
         root.destroy()
         return modified_content
 
@@ -54,10 +38,3 @@ def polish(file_path):
 
     # 启动主循环
     root.mainloop()
-
-
-if __name__ == "__main__":
-    # 设置文件路径
-    file_path = "README.md"
-    # 创建GUI
-    polish(file_path)
