@@ -1,5 +1,9 @@
+import os
+import re
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
+
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QTextEdit, QLineEdit, QVBoxLayout, QWidget, QFileDialog,
     QMessageBox, QHBoxLayout, QSplitter, QDialog, QFileSystemModel, QTreeView
@@ -8,6 +12,11 @@ from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QModelIndex
 import markdown
+from traits.trait_types import self
+
+import ACsearch
+import md_optimize
+import readBook
 from callAPI import call_api
 from md_optimize import get_optimize_md
 
@@ -109,7 +118,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.label_split)
 
         self.text_split = QTextEdit()
-        self.text_split.setFixedHeight(80)
+        self.text_split.setFixedHeight(200)
         layout.addWidget(self.text_split)
 
         # 选择章节
@@ -130,24 +139,27 @@ class MainWindow(QMainWindow):
 
     def get_flag_and_chapters(self):
         try:
-            # 验证 chapters 中的元素是否符合要求
-            if not all(isinstance(chapter, int) and chapter > 0 for chapter in self.chapters):
-                raise ValueError("每个 chapter 必须是正整数")
+            # 提取并验证 split_flags 和 chapters
+            self.split_flags = self.text_split.toPlainText().split('\n')
+            chapters_str = self.entry_chapter.text().split(',')
 
-            if not all(chapter <= len(self.split_flags) + 1 for chapter in self.chapters):
+            # 将章节号字符串转为整数列表
+            chapters_list = [int(num) for num in chapters_str]
+
+            # 验证 chapters 的内容是否符合要求
+            if not all(isinstance(chapter, int) and chapter > 0 for chapter in chapters_list):
+                raise ValueError("每个 chapter 必须是正整数")
+            if not all(chapter <= len(self.split_flags) + 1 for chapter in chapters_list):
                 raise ValueError("章节号超出范围")
 
-            # 如果验证通过，返回结果
-            self.split_flags = self.text_split.toPlainText().split('\n')
-            chapters_str = self.entry_chapter.text().split(',，')
-            chapters_list = [int(num) for num in chapters_str]
+            # 如果验证通过，赋值并返回结果
             self.chapters = chapters_list
             return self.split_flags, self.chapters
 
         except ValueError as e:
             # 捕获并处理验证过程中发生的错误
             print(f"错误: {e}")
-            return None
+            return [], []  # 返回明确的默认值
 
     def show_loading_and_request(self):
         """显示加载界面并请求api"""
@@ -164,6 +176,7 @@ class MainWindow(QMainWindow):
     def show_md_editor(self):
         self.loading_dialog.hide()
         self.mdEditor = MdEditorWindow()
+        self.mdEditor.set_output_file_path(self.output_file_path)
         self.mdEditor.show()
 
     def select_book_file(self):
@@ -188,30 +201,36 @@ class MainWindow(QMainWindow):
             self.output_file_path = dir_path
             self.output_file_label.setText(f"已选择导出位置: {self.output_file_path}")
 
+
 class ApiWorker(QThread):
     result_ready = pyqtSignal(object)  # 信号：API 请求完成后返回结果
 
-    def __init__(self, book_path, prompt_file_path, split_flags, chapters, parent=None):
+    def __init__(self, book_path, prompt_file_path, output_file_path, split_flags, chapters, parent=None):
         super().__init__(parent)
         self.book_path = book_path
         self.prompt_file_path = prompt_file_path
+        self.output_file_path = output_file_path
         self.split_flags = split_flags
         self.chapters = chapters
 
     def run(self):
         """在后台线程中调用 API"""
-        response = call_api(self.book_path, self.prompt_file_path)
+        content = readBook.read_file(book_path=self.book_path)
+        ACsearch.split_and_save(content, self.split_flags, self.chapters)
+
+        def process_chapter(i):
+            chapter_path = f'chapters/part_{i}.txt'
+            return call_api(chapter_path, self.prompt_file_path)
+
+        with ThreadPoolExecutor() as executor:
+            # 并行调用 API
+            futures = [executor.submit(process_chapter, i) for i in range(1, len(self.chapters) + 1)]
+            for future in futures:
+                future.result()
+
+        response = True
         self.result_ready.emit(response)
 
-        for i in range(0, len(self.chapters)):
-            # 获取大模型返回内容
-            chapter_path = f'split_chapters/part_{i}.txt'
-            call_api(chapter_path, self.prompt_file_path, )
-            # 调整md，嵌入图片
-            get_optimize_md()
-            command = ['python', './md2pptx/md2pptx', './api_return_src/content_format.md', f'output_{i}.pptx']
-            # 使用 subprocess.run 执行命令
-            subprocess.run(command)
 
 class LoadingDialog(QDialog):
     """加载界面"""
@@ -237,12 +256,15 @@ class LoadingDialog(QDialog):
         loading_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(loading_label)
 
+
 class MdEditorWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.output_file_path = ''
         self.setWindowTitle('修改大纲')
         self.setGeometry(100, 100, 1500, 1000)
         self.setWindowIcon(QIcon("buaa_cs_logo.png"))
+        self.output_file_path = ''
         self.setStyleSheet("""
                    QLabel {
                        font-family: "Microsoft YaHei";
@@ -283,15 +305,15 @@ class MdEditorWindow(QMainWindow):
 
         # 创建文件系统模型和视图
         self.file_model = QFileSystemModel()
-        self.file_model.setRootPath('api_return_src')  # 根目录
+        self.file_model.setRootPath('optimize')  # 根目录
         self.file_model.setNameFilters(['*.md'])  # 只显示Markdown文件
         self.file_model.setNameFilterDisables(False)
 
         self.file_view = QTreeView()
         self.file_view.setModel(self.file_model)
-        self.file_view.setRootIndex(self.file_model.index('api_return_src'))  # 设置初始路径
-        self.file_view.setColumnHidden(1,True)
-        self.file_view.setColumnHidden(2,True)
+        self.file_view.setRootIndex(self.file_model.index('optimize'))  # 设置初始路径
+        self.file_view.setColumnHidden(1, True)
+        self.file_view.setColumnHidden(2, True)
         self.file_view.setColumnWidth(0, 200)  # 设置文件名列宽度
         self.file_view.setColumnWidth(3, 100)  # 设置修改日期列宽度
         self.file_view.clicked.connect(self.open_file)
@@ -301,7 +323,7 @@ class MdEditorWindow(QMainWindow):
 
         # 创建左侧的 QTextEdit，用于编辑 Markdown 原码
         self.markdown_editor = QTextEdit(self)
-        self.md_path = 'api_return_src/content_format.md'
+        self.md_path = 'optimize\\content_1.md'
         self.content = ''
         with open(self.md_path, 'r+', encoding='utf-8') as f:
             self.content = f.read()
@@ -322,7 +344,7 @@ class MdEditorWindow(QMainWindow):
 
         # 设置分隔器比例
         splitter.setSizes([300, 1000])
-        sub_splitter.setSizes([500,500])
+        sub_splitter.setSizes([500, 500])
 
         # 将分隔器添加到布局
         layout.addWidget(splitter)
@@ -332,6 +354,7 @@ class MdEditorWindow(QMainWindow):
         self.save_button.clicked.connect(self.save_file)
 
         self.submit_button = QPushButton('生成ppt')
+        self.submit_button.clicked.connect(self.generate_ppt_and_display)
         self.submit_button.setFixedSize(100, 50)
         # 创建水平布局来包含按钮，以便居中对齐
         button_layout = QHBoxLayout()
@@ -348,6 +371,27 @@ class MdEditorWindow(QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
         self.update_rendered_view()  # 初始化渲染
+
+    def set_output_file_path(self, file_path):
+        self.output_file_path = file_path
+
+    def generate_ppt_and_display(self):
+        # 遍历optimize下的所有md文件，利用md2pptx生成ppt并展示
+        for root, dirs, files in os.walk('optimize'):
+            for file in files:
+                pattern = r'content_(\d+)\.md'
+                match = re.match(pattern, file)
+                i = int(match.group(1))
+                file_path = os.path.join(root, file)
+                md_optimize.get_optimize_md(file_path)
+                output_path = os.path.join(self.output_file_path, f'output_{i}.pptx')
+                command = ['python', './md2pptx/md2pptx', file_path, output_path]
+                subprocess.run(command)
+
+        self.hide()
+        self.display_window = OutputDisplayWindow()
+        self.display_window.set_output_path(self.output_file_path)
+        self.display_window.show()
 
     def open_file(self, index: QModelIndex):
         file_path = self.file_model.filePath(index)
@@ -372,8 +416,94 @@ class MdEditorWindow(QMainWindow):
         with open(self.md_path, 'w', encoding='utf-8') as file:
             file.write(self.content)
 
+
+class OutputDisplayWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('PPT生成完成')
+        self.setGeometry(100, 100, 800, 800)
+        self.setWindowIcon(QIcon("buaa_cs_logo.png"))
+        self.output_path = ''
+        self.setStyleSheet("""
+                           QLabel {
+                               font-family: "Microsoft YaHei";
+                               font-size: 16px;
+                               color: #333333;
+                           }
+                           QPushButton {
+                               font-family: "Microsoft YaHei";
+                               font-size: 16px;
+                               background-color: #d3d3d3;
+                               color: black;
+                               padding: 8px 16px;
+                               border-radius: 8px;
+                           }
+                           QPushButton:hover {
+                               background-color: #c0c0c0;
+                           }
+                           QTextEdit {
+                                border: 0px;
+                                font-family: "Microsoft YaHei";
+                                font-size: 16px;
+                           }
+                           QMainWindow {
+                               font-family: "Microsoft YaHei";
+                               font-size: 16px;
+                               background-color: #f9f9f9;
+                           }
+                       """)
+
+        layout = QVBoxLayout()
+
+        # 创建文件系统模型和视图
+        self.file_model = QFileSystemModel()
+        self.file_model.setRootPath(self.output_path)  # 根目录
+        self.file_model.setNameFilters(['*'])
+        self.file_model.setNameFilterDisables(False)
+
+        self.file_view = QTreeView()
+        self.file_view.setModel(self.file_model)
+        self.file_view.setRootIndex(self.file_model.index(self.output_path)) #初始目录
+        self.file_view.setColumnHidden(1, True)
+        self.file_view.setColumnHidden(2, True)
+        self.file_view.setColumnWidth(0, 200)  # 设置文件名列宽度
+        self.file_view.setColumnWidth(3, 100)  # 设置修改日期列宽度
+        self.file_view.clicked.connect(self.open_ppt)
+        layout.addWidget(self.file_view)
+
+        self.dev_info_textbox = QTextEdit(self)
+        self.dev_info_textbox.setReadOnly(True)  # 设置为只读
+        developer_info = """
+               该程序目前仅能生成最基本的ppt，更多功能敬请期待，期待你的加入!
+               --------------------------------------------------------------
+               开发人员：罗浩宇、李昊霖、张之夏
+               指导老师：葛声
+               GitHub: https://github.com/Accepted0424/AI_PPT
+               项目版本: 1.0
+               """
+        self.dev_info_textbox.setText(developer_info)  # 设置文本框内容
+        self.dev_info_textbox.setFixedHeight(200)
+        layout.addWidget(self.dev_info_textbox)
+
+        self.setLayout(layout)
+
+    def open_ppt(self, index):
+        file_path = self.file_model.filePath(index)
+        # 使用系统默认的程序打开 PPT 文件
+        if os.path.exists(file_path):
+            subprocess.Popen([file_path], shell=True)
+        else:
+            print("文件不存在")
+
+    def set_output_path(self, file_path):
+        self.output_path = file_path
+        self.file_model.setRootPath(file_path)
+        self.file_view.setModel(self.file_model)
+        self.file_view.setRootIndex(self.file_model.index(file_path))
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    gui = MdEditorWindow()
+    gui = MainWindow()
     gui.show()
     sys.exit(app.exec_())

@@ -10,7 +10,7 @@ import os
 def call_api(book_path, prompt_file_path, temp=0.4, top=0.5):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key="sk-4ebdf9c7200b491f9f55767afdd006bb",
+        api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
         # api_key="sk-e1b95b4233e14a87bbad7c634812b5a7",
         # api_key="sk-a08f57eb1f5b4baea1e98d1ef049eaef",
         # api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
