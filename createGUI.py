@@ -383,7 +383,7 @@ class MdEditorWindow(QMainWindow):
                 match = re.match(pattern, file)
                 i = int(match.group(1))
                 file_path = os.path.join(root, file)
-                md_optimize.get_optimize_md(file_path)
+                # md_optimize.get_optimize_md_with_img(file_path)
                 output_path = os.path.join(self.output_file_path, f'output_{i}.pptx')
                 command = ['python', './md2pptx/md2pptx', file_path, output_path]
                 subprocess.run(command)

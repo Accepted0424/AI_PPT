@@ -2,6 +2,8 @@ import json
 import re
 
 from openai import OpenAI
+
+import md_optimize
 from readBook import read_file
 import os
 
@@ -69,9 +71,11 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.5):
     with open(md_file_path, 'w', encoding='utf-8') as md_file:
         md_file.write(md_content)
         print("返回文件中的content部分已保存")
+    optimize_path = f'.\\{md_file_path}'
+    md_optimize.get_optimize_md_with_img(optimize_path)
 
 # 直接运行该文件进行测试
 if __name__ == '__main__':
-    book_path_test = "chapters/part_6.txt"
+    book_path_test = "chapters/part_1.txt"
     prompt_file_path_test = "prompt.txt"
     call_api(book_path_test, prompt_file_path_test)
