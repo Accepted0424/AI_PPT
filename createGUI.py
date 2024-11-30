@@ -133,6 +133,8 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(layout)
 
     def get_flag_and_chapters(self):
+        if self.split_flags is None and self.chapters is None:
+            return [], []
         try:
             # 提取并验证 split_flags 和 chapters
             self.split_flags = self.text_split.toPlainText().split('\n')
@@ -219,7 +221,8 @@ class ApiWorker(QThread):
 
         with ThreadPoolExecutor() as executor:
             # 并行调用 API
-            futures = [executor.submit(process_chapter, i) for i in range(1, len(self.chapters) + 1)]
+            part = max(2, len(self.chapters) + 1)
+            futures = [executor.submit(process_chapter, i) for i in range(1, part)]
             for future in futures:
                 future.result()
 

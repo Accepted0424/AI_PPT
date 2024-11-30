@@ -96,6 +96,8 @@ def split_and_save(text, patterns, nums):
         if num > len(splits):
             continue
         save_text.append(splits[num - 1])
+    if len(patterns) == 0 and len(nums) == 0:
+        save_text = [text]
     file_dir = 'chapters'
     if not os.path.exists(file_dir):
         os.makedirs(file_dir)
