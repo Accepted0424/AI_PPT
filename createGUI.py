@@ -133,8 +133,6 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(layout)
 
     def get_flag_and_chapters(self):
-        if self.split_flags is None and self.chapters is None:
-            return [], []
         try:
             # 提取并验证 split_flags 和 chapters
             self.split_flags = self.text_split.toPlainText().split('\n')
