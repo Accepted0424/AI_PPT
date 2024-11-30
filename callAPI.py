@@ -1,19 +1,17 @@
 import json
 import re
-
-from openai import OpenAI
-
 import md_optimize
-from readBook import read_file
 import os
+from openai import OpenAI
+from readBook import read_file
 
 
 # 调用API生成目标文字
 def call_api(book_path, prompt_file_path, temp=0.4, top=0.5):
     # 创建 OpenAI 客户端
     client = OpenAI(
-        api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
-        # api_key="sk-e1b95b4233e14a87bbad7c634812b5a7",
+        api_key="sk-e1b95b4233e14a87bbad7c634812b5a7",
+        # api_key="sk-4ebdf9c7200b491f9f55767afdd006bb",
         # api_key="sk-a08f57eb1f5b4baea1e98d1ef049eaef",
         # api_key="sk-4c1e01470f1d404abbe4eaf23fb3e4d2",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -73,6 +71,7 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.5):
         print("返回文件中的content部分已保存")
     optimize_path = f'.\\{md_file_path}'
     md_optimize.get_optimize_md_with_img(optimize_path)
+
 
 # 直接运行该文件进行测试
 if __name__ == '__main__':

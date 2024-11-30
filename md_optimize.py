@@ -1,6 +1,5 @@
 import re
-
-from getPicture import getPic, call_image_downloader
+from getPicture import call_image_downloader
 
 
 def get_optimize_md(md_path):
@@ -20,7 +19,7 @@ def get_optimize_md(md_path):
         f.write(new_content)
         f.truncate()
         # 获取图片关键词，删去关键词，增加图片链接
-        #for line in content.split('\n'):
+        # for line in content.split('\n'):
         #    if line.startswith('* (') or line.startswith('(') or line.startswith('  * ('):
         #       pic_query_list = re.findall(r'\((.*?)\)', line)
         #       pic_query = pic_query_list[0]
@@ -39,9 +38,10 @@ def get_optimize_md(md_path):
         #    else:
         #        new_content += line
         #        new_content += '\n'
-        #f.seek(0)
-        #f.write(new_content)
-        #f.truncate()
+        # f.seek(0)
+        # f.write(new_content)
+        # f.truncate()
+
 
 def get_optimize_md_with_img(md_path):
     # config
@@ -79,6 +79,7 @@ def get_optimize_md_with_img(md_path):
         f.write(new_content)
         f.truncate()
         print('图片已添加')
+
 
 if __name__ == '__main__':
     md_path = './optimize/content_4.md'

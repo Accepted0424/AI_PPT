@@ -2,23 +2,18 @@ import os
 import re
 import subprocess
 import sys
+import markdown
+import ACsearch
+import readBook
 from concurrent.futures import ThreadPoolExecutor
-
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QTextEdit, QLineEdit, QVBoxLayout, QWidget, QFileDialog,
-    QMessageBox, QHBoxLayout, QSplitter, QDialog, QFileSystemModel, QTreeView
+    QHBoxLayout, QSplitter, QDialog, QFileSystemModel, QTreeView
 )
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QModelIndex
-import markdown
-from traits.trait_types import self
-
-import ACsearch
-import md_optimize
-import readBook
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QModelIndex
 from callAPI import call_api
-from md_optimize import get_optimize_md
 
 
 class MainWindow(QMainWindow):
@@ -463,7 +458,7 @@ class OutputDisplayWindow(QWidget):
 
         self.file_view = QTreeView()
         self.file_view.setModel(self.file_model)
-        self.file_view.setRootIndex(self.file_model.index(self.output_path)) #初始目录
+        self.file_view.setRootIndex(self.file_model.index(self.output_path))  # 初始目录
         self.file_view.setColumnHidden(1, True)
         self.file_view.setColumnHidden(2, True)
         self.file_view.setColumnWidth(0, 200)  # 设置文件名列宽度
