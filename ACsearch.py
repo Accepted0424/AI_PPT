@@ -109,7 +109,7 @@ def split_and_save(text, patterns, nums):
 
 
 if __name__ == "__main__":
-    text = read_file('book\\link.epub')
+    text = read_file('D:\pythonProject\AI_PPT\实验成果\测试书籍资料\链接\链接.pdf')
     patterns = [
         '第1链 网络让世界变得不同“人们曾经拆卸过宇宙，却不知道该如何将它再拼起来。',
         '第2链 随机宇宙网络的构造和结构是理解复杂世界的关键。',
