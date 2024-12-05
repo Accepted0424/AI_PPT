@@ -9,7 +9,7 @@ from readBook import read_file
 # 调用API生成目标文字
 def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
     # 从环境变量中读取 API 密钥
-    key = "API_KEY"
+    key = "sk-a08f57eb1f5b4baea1e98d1ef049eaef"
     if not key:
         raise ValueError("找不到环境变量API_KEY")
 
@@ -41,15 +41,19 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
     # 提取生成的文本
     generated_text = completion_0.choices[0].message.content
 
+    '''
     # 将生成的文本写入文件
     with open('output.txt', 'w', encoding='utf-8') as f:
         f.write(generated_text)
+    '''
 
     # 输入 prompt 内容
     prompt = f"""
         使用markdown的格式，并且请严格遵循以下要求:
     1.有五级标题。
     2.第一级(#)表示ppt的标题。第二级(##)表示章节的标题。第三级(###)表示章节的重点。第四级(*)表示重点内容下的知识点。第五级(  *)表示对知识点的详细介绍.
+    3.每一章重点(###)知识点列举完之后用英语单词或短语概括该重点,用作关键词搜索图片,关键词应该与ppt的主题相符,用括号括起来,单独占一行,例如"(network)"
+    4.生成的markdown文档不要用```包裹。
     """
 
     completion = client.chat.completions.create(
@@ -67,9 +71,11 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
     # 提取生成的文本
     generated_text2 = completion.choices[0].message.content
 
+    '''
     # 将生成的文本写入文件
     with open('output2.txt', 'w', encoding='utf-8') as f:
         f.write(generated_text2)
+    '''
 
     # 将结果转换为 JSON 字符串
     response = completion.model_dump_json()
