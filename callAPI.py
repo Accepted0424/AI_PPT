@@ -9,7 +9,7 @@ from readBook import read_file
 # 调用API生成目标文字
 def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
     # 从环境变量中读取 API 密钥
-    key = os.getenv("DASHSCOPE_API_KEY")
+    key = os.getenv("API_KEY")
     if not key:
         raise ValueError("找不到环境变量API_KEY")
 
@@ -73,7 +73,8 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
             {'role': 'system',
              'content': 'You are a helpful assistant.'},
             {'role': 'user', 'content': f"对{generated_text}进行扩写"},
-            {'role': 'user', 'content': f"扩写要求：严格保持原来的结构，如{prompt}所示只对知识点进行扩写，扩写内容必须严格根据{file_content}"},
+            {'role': 'user',
+             'content': f"扩写要求：严格保持原来的结构，如{prompt}所示只对知识点进行扩写，扩写内容必须严格根据{file_content}"},
         ]
     )
 
