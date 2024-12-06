@@ -217,12 +217,15 @@ class ApiWorker(QThread):
             chapter_path = f'chapters/part_{i}.txt'
             return call_api(chapter_path, self.prompt_file_path)
 
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=10) as executor:
             # 并行调用 API
             part = max(2, len(self.chapters) + 1)
             futures = [executor.submit(process_chapter, i) for i in range(1, part)]
             for future in futures:
-                future.result()
+                try:
+                    future.result()  # 获取任务结果
+                except Exception as e:
+                    print(f"Error occurred: {e}")
 
         response = True
         self.result_ready.emit(response)
