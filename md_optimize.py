@@ -1,8 +1,67 @@
 import re
 from getPicture import call_image_downloader
 
-def get_optimize_md_with_img(md_path):
-    # config
+
+def read_file(md_path):
+    with open(md_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return content
+
+
+def write_file(md_path, content):
+    with open(md_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+
+
+def search_picture(content, i):
+    new_content = ''
+    for line in content.split('\n'):
+        line_temp = line.strip()
+        if line != '' and line_temp[0] == '*' and line_temp[-1] != '*':
+            match = None
+        else:
+            match = re.fullmatch(r'\*?\s*\(([^()*]+)\)\s*\*?', line_temp)
+        if match:
+            pic_query = match.group(1)
+            pic_query = pic_query.strip()
+            print(pic_query)
+            try:
+                image_path = call_image_downloader(pic_query, f"picture/part_{i}")
+                new_line = f"![{pic_query}](.\\picture\\part_{i}\\{image_path})\n"
+                new_content += new_line
+            except:
+                new_content += line + '\n'
+        elif line.startswith('---'):
+            pass
+        else:
+            new_content += line + '\n'
+    return new_content
+
+
+def format_url(content):
+    new_content = ''
+    for block in re.split(r'(#{1,3})', content):
+        new_block = ''
+        url_list = []
+        for line in block.split('\n'):
+            matches = re.findall(r'!\[[^\]]+\]\([^\)]+\)', line)
+            if matches:
+                for match in matches:
+                    url_list.append(match)
+            elif re.fullmatch(r'#{1,3}', line.strip()):
+                new_block += line.strip()
+            else:
+                new_block += line + '\n'
+        if len(url_list) == 1:
+            new_block += url_list[0] + '\n\n'
+        elif len(url_list) > 1:
+            new_block += '|' + ('|'.join(url_list)) + '|' + '\n\n'
+        new_content += new_block
+    return new_content
+
+
+def get_optimize_md_with_img(md_path, i):
+    content = read_file(md_path)
     new_content = ('template: Martin Template.pptx\n'
                    + 'cardlayout: horizontal\n'
                    + 'baseTextSize: 20\n'
@@ -13,36 +72,14 @@ def get_optimize_md_with_img(md_path):
                    + 'removeFirstSlide: yes\n'
                    + 'backgroundImage: background.png\n'
                    + 'marginBase: 0.5\n\n')
-
-    with open(md_path, 'r+', encoding='utf-8') as f:
-        content = f.read()
-        # 获取图片关键词，删去关键词，增加图片链接
-        for line in content.split('\n'):
-            if line.startswith('* (') or line.startswith('(') or line.startswith('  * (') or line.startswith('  (') or line.startswith('    * (') or line.startswith(' ('):
-                pic_query_list = re.findall(r'\((.*?)\)', line)
-                pic_query = pic_query_list[0]
-                try:
-                    pattern = r'.\\optimize\\content_(\d+)\.md'
-                    match = re.match(pattern, md_path)
-                    i = int(match.group(1))
-                    image_path = call_image_downloader(pic_query, f"picture/part_{i}")
-                    new_line = f"![{pic_query}](.\\picture\\part_{i}\\{image_path})\n"
-                    new_content += new_line
-                except:
-                    new_content += line
-                    new_content += '\n'
-            elif line.startswith('---'):
-                pass
-            else:
-                new_content += line
-                new_content += '\n'
-        f.seek(0)
-        f.write(new_content)
-        f.truncate()
-        print('图片已添加')
+    if content.startswith(new_content):
+        new_content = ''
+    new_content += search_picture(content, i)
+    format_content = format_url(new_content)
+    write_file(md_path, format_content)
 
 
 if __name__ == '__main__':
-    md_path = './optimize/content_4.md'
-    get_optimize_md_with_img(md_path)
+    md_path = './optimize/content_5.md'
+    get_optimize_md_with_img(md_path, 5)
     print('图片已添加')

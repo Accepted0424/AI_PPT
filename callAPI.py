@@ -106,7 +106,7 @@ def call_api(book_path, prompt_file_path, temp=0.4, top=0.9):
         md_file.write(md_content)
         print("返回文件中的content部分已保存")
     optimize_path = f'.\\{md_file_path}'
-    md_optimize.get_optimize_md_with_img(optimize_path)
+    md_optimize.get_optimize_md_with_img(optimize_path, i)
 
 
 # 直接运行该文件进行测试
