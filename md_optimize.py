@@ -24,7 +24,6 @@ def search_picture(content, i):
         if match:
             pic_query = match.group(1)
             pic_query = pic_query.strip()
-            print(pic_query)
             try:
                 image_path = call_image_downloader(pic_query, f"picture/part_{i}")
                 new_line = f"![{pic_query}](.\\picture\\part_{i}\\{image_path})\n"
