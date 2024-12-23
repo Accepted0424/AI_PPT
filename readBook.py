@@ -2,7 +2,7 @@ import warnings
 import docx
 import os
 import re
-import fitz
+import pymupdf
 from ebooklib import epub
 from bs4 import BeautifulSoup
 
@@ -17,7 +17,7 @@ def read_txt(book_path):
 def read_pdf(book_path):
     """读取PDF文件内容"""
     # 打开 PDF 文件
-    document = fitz.open(book_path)
+    document = pymupdf.open(book_path)
     text = ''
     # 遍历每一页
     for page_num in range(len(document)):
@@ -92,4 +92,4 @@ def read_file(book_path):
 
 
 if __name__ == "__main__":
-    print(read_file("link.epub"))
+    print(read_file(".\\book\\链接.pdf"))
