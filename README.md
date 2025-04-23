@@ -48,8 +48,8 @@ AI_PPT是一个能够将书籍文件转换为PPT的项目，支持多种书籍�
 6. **PPT生成**：通过调用md2pptx子项目，将优化后的大纲文件转换为PPT文件，并将下载的图片导入到PPT中，最终生成完整的PPT。
 
 ## 七、开源项目引用说明
-- https://github.com/MartinPacker/md2pptx，基于MIT协议
-- https://github.com/QianyanTech/Image-Downloader，基于MIT协议
+- [md2pptx](https://github.com/MartinPacker/md2pptx)，基于MIT协议
+- [Image-Downloader](https://github.com/QianyanTech/Image-Downloader)，基于MIT协议
 
 该程序目前仅能生成最基本的ppt，更多功能敬请期待，期待你的加入!
 - 项目版本: 1.0
